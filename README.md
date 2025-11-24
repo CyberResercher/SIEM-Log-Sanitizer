@@ -2,12 +2,9 @@
 
 **LogSaver** is a secure, privacy-first tool for sanitizing sensitive SOC logs (SIEM, Firewall, Cloud) directly in your browser. No data ever leaves your device.
 
-## 🚀 Live Demo
-**(Optional) Enable GitHub Pages to host this tool instantly!**
-1.  Go to your repository **Settings**.
-2.  Click **Pages** on the left sidebar.
-3.  Under **Source**, select `main` branch and `/ (root)` folder.
-4.  Click **Save**. Your tool will be live at `https://<your-username>.github.io/<repo-name>/`.
+## 🚀 Use this tool
+
+1.   live at https://cyberresercher.github.io/SIEM-Log-Sanitizer/.
 
 ---
 
@@ -69,3 +66,4 @@ We are constantly improving LogSaver. Here is what's coming next:
 
 ## 📄 License
 [MIT](LICENSE) - **Privacy & Liability Disclaimer**: This tool is provided "as is". The user assumes full responsibility for verifying sanitized output. No data is stored or transmitted by the authors.
+
