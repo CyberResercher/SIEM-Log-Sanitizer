@@ -1,0 +1,1069 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>SOC Log Sanitizer</title>
+  <script src="https://cdn.jsdelivr.net/npm/@faker-js/faker@8.0.2/dist/faker.min.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap"
+    rel="stylesheet">
+  <style>
+    :root {
+      --bg-body: #0f172a;
+      --bg-panel: #1e293b;
+      --bg-input: #020617;
+      --border: #334155;
+      --text-main: #f1f5f9;
+      --text-muted: #94a3b8;
+      --accent: #6366f1;
+      --accent-hover: #4f46e5;
+      --danger: #ef4444;
+      --success: #22c55e;
+      --warning: #eab308;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Inter', system-ui, sans-serif;
+      background-color: var(--bg-body);
+      color: var(--text-main);
+      margin: 0;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Header */
+    header {
+      padding: 16px 24px;
+      border-bottom: 1px solid var(--border);
+      background: var(--bg-panel);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .brand {
+      font-weight: 700;
+      font-size: 20px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      color: var(--text-main);
+    }
+
+    .brand span {
+      color: var(--accent);
+    }
+
+    .tagline {
+      color: var(--text-muted);
+      font-size: 14px;
+      margin-left: 12px;
+      border-left: 1px solid var(--border);
+      padding-left: 12px;
+    }
+
+    /* Layout */
+    main {
+      flex: 1;
+      display: grid;
+      grid-template-columns: 320px 1fr 1fr;
+      gap: 1px;
+      background: var(--border);
+      /* Gap color */
+      overflow: hidden;
+    }
+
+    @media (max-width: 1024px) {
+      main {
+        grid-template-columns: 1fr;
+        overflow: auto;
+        gap: 16px;
+        padding: 16px;
+        background: var(--bg-body);
+      }
+    }
+
+    /* Panels */
+    .panel {
+      background: var(--bg-panel);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .panel-header {
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--border);
+      font-weight: 600;
+      font-size: 14px;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .panel-body {
+      padding: 16px;
+      overflow-y: auto;
+      flex: 1;
+    }
+
+    .sidebar {
+      background: #172033;
+    }
+
+    /* Controls */
+    .control-group {
+      margin-bottom: 20px;
+    }
+
+    .label {
+      display: block;
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text-muted);
+      margin-bottom: 8px;
+    }
+
+    select,
+    input[type="text"],
+    textarea {
+      width: 100%;
+      background: var(--bg-input);
+      border: 1px solid var(--border);
+      color: var(--text-main);
+      padding: 8px 12px;
+      border-radius: 6px;
+      font-family: inherit;
+      font-size: 14px;
+      transition: border-color 0.2s;
+    }
+
+    select:focus,
+    input:focus,
+    textarea:focus {
+      outline: none;
+      border-color: var(--accent);
+    }
+
+    /* Buttons */
+    .btn {
+      background: var(--accent);
+      color: white;
+      border: none;
+      padding: 10px 16px;
+      border-radius: 6px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s;
+      width: 100%;
+    }
+
+    .btn:hover {
+      background: var(--accent-hover);
+    }
+
+    .btn:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
+    .btn-sm {
+      padding: 4px 8px;
+      font-size: 12px;
+      width: auto;
+      background: var(--bg-input);
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+    }
+
+    .btn-sm:hover {
+      border-color: var(--text-muted);
+      color: var(--text-main);
+    }
+
+    .btn-icon {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      cursor: pointer;
+      padding: 4px;
+    }
+
+    .btn-icon:hover {
+      color: var(--danger);
+    }
+
+    /* Chips */
+    .chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .chip {
+      background: var(--bg-input);
+      border: 1px solid var(--border);
+      padding: 4px 10px;
+      border-radius: 99px;
+      font-size: 12px;
+      cursor: pointer;
+      user-select: none;
+      transition: all 0.2s;
+    }
+
+    .chip:hover {
+      border-color: var(--text-muted);
+    }
+
+    .chip input {
+      display: none;
+    }
+
+    .chip.active {
+      background: rgba(99, 102, 241, 0.2);
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    /* Custom Tag List */
+    .tag-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .tag-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: var(--bg-input);
+      border: 1px solid var(--border);
+      padding: 8px;
+      border-radius: 6px;
+      font-size: 12px;
+    }
+
+    .tag-item span {
+      font-family: 'JetBrains Mono', monospace;
+      color: var(--accent);
+    }
+
+    /* Editors */
+    .editor-container {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+    }
+
+    textarea.code-editor {
+      flex: 1;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 13px;
+      line-height: 1.5;
+      resize: none;
+      border: none;
+      border-radius: 0;
+      padding: 16px;
+      background: var(--bg-input);
+    }
+
+    /* Analysis */
+    .stat-card {
+      background: var(--bg-input);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 12px;
+      margin-bottom: 12px;
+    }
+
+    .stat-title {
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-bottom: 4px;
+    }
+
+    .stat-value {
+      font-size: 24px;
+      font-weight: 700;
+      color: var(--text-main);
+    }
+
+    .stat-sub {
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    .bar-container {
+      margin-top: 8px;
+    }
+
+    .bar-label {
+      display: flex;
+      justify-content: space-between;
+      font-size: 12px;
+      margin-bottom: 4px;
+    }
+
+    .bar-bg {
+      height: 6px;
+      background: var(--border);
+      border-radius: 3px;
+      overflow: hidden;
+    }
+
+    .bar-fill {
+      height: 100%;
+      background: var(--accent);
+      border-radius: 3px;
+      width: 0;
+      transition: width 0.5s;
+    }
+
+    .compliance-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-size: 12px;
+      font-weight: 600;
+      background: rgba(239, 68, 68, 0.1);
+      color: var(--danger);
+      border: 1px solid rgba(239, 68, 68, 0.2);
+      margin-top: 8px;
+    }
+
+    /* Scrollbar */
+    ::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: var(--bg-body);
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: var(--border);
+      border-radius: 4px;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+      background: var(--text-muted);
+    }
+
+    /* Toast */
+    .toast {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      background: var(--bg-panel);
+      border: 1px solid var(--accent);
+      color: var(--text-main);
+      padding: 12px 24px;
+      border-radius: 8px;
+      box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.5);
+      transform: translateY(100px);
+      opacity: 0;
+      transition: all 0.3s;
+    }
+
+    .toast.show {
+      transform: translateY(0);
+      opacity: 1;
+    }
+
+    /* Tooltips */
+    .tooltip-container {
+      position: relative;
+      display: inline-block;
+      margin-left: 6px;
+      vertical-align: middle;
+    }
+
+    .info-icon {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: var(--border);
+      color: var(--text-muted);
+      font-size: 10px;
+      font-weight: bold;
+      font-family: 'JetBrains Mono', monospace;
+      cursor: help;
+      transition: all 0.2s;
+    }
+
+    .info-icon:hover {
+      background: var(--accent);
+      color: white;
+    }
+
+    .tooltip-text {
+      visibility: hidden;
+      width: 200px;
+      background-color: var(--bg-input);
+      color: var(--text-main);
+      text-align: left;
+      border-radius: 6px;
+      padding: 8px;
+      position: absolute;
+      z-index: 1;
+      bottom: 125%;
+      /* Position above */
+      left: 50%;
+      margin-left: -100px;
+      /* Center */
+      opacity: 0;
+      transition: opacity 0.3s;
+      border: 1px solid var(--accent);
+      font-size: 11px;
+      line-height: 1.4;
+      font-weight: normal;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.5);
+    }
+
+    .tooltip-container:hover .tooltip-text {
+      visibility: visible;
+      opacity: 1;
+    }
+  </style>
+</head>
+
+<body>
+
+  <header>
+    <div class="brand">
+      <span>🛡️</span> LogSaver <div class="tagline">Secure Client-Side Sanitizer</div>
+    </div>
+    <div style="display:flex; gap:10px; align-items:center">
+      <span class="label" style="margin:0">Load Sample:</span>
+      <select id="sample_select" style="width:200px">
+        <option value="">-- Select SIEM Log --</option>
+        <option value="azure">Azure Sentinel</option>
+        <option value="splunk">Splunk</option>
+        <option value="crowdstrike">CrowdStrike Falcon</option>
+        <option value="okta">Okta System Log</option>
+        <option value="paloalto">Palo Alto Firewall</option>
+        <option value="aws">AWS CloudTrail</option>
+        <option value="linux">Linux Syslog</option>
+        <option value="windows">Windows Event Log</option>
+        <option value="nginx">Nginx Access Log</option>
+      </select>
+    </div>
+  </header>
+
+  <main>
+    <!-- Sidebar: Controls -->
+    <div class="panel sidebar">
+      <div class="panel-header">Configuration</div>
+      <div class="panel-body">
+
+        <div class="control-group">
+          <label class="label">Sanitization Strategy</label>
+          <select id="strategy">
+            <option value="redact">Redact (e.g. [REDACTED])</option>
+            <option value="mask">Mask (e.g. ****1234)</option>
+            <option value="hash">Hash (SHA-256)</option>
+            <option value="tokenize">Tokenize (Consistent ID)</option>
+            <option value="sample" selected>Fake Data (Realistic)</option>
+          </select>
+        </div>
+
+        <div class="control-group">
+          <label class="label">Exclude Types (Keep Visible)</label>
+          <div class="chips" id="types_container">
+            <!-- JS will populate -->
+          </div>
+        </div>
+
+        <div class="control-group">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px">
+            <label class="label" style="margin:0">
+              Custom Tags
+              <div class="tooltip-container">
+                <span class="info-icon">i</span>
+                <span class="tooltip-text">Select any text in the Input Log and click "Sanitize Selection" to create a
+                  custom redaction rule for that specific text.</span>
+              </div>
+            </label>
+            <button class="btn-sm" id="clear_tags_btn" style="font-size:10px; padding:2px 6px; height:auto">Clear
+              All</button>
+          </div>
+          <div id="custom_tags_list" class="tag-list">
+            <div style="font-size:12px; color:var(--text-muted); font-style:italic">No custom tags yet. Select text in
+              input & click 'Sanitize Selection'.</div>
+          </div>
+        </div>
+
+        <div class="control-group">
+          <label class="label">
+            Salt (Optional)
+            <div class="tooltip-container">
+              <span class="info-icon">i</span>
+              <span class="tooltip-text">A secret string used to randomize hashes. Keep this consistent to generate the
+                same hash for the same input across different logs.</span>
+            </div>
+          </label>
+          <input type="text" id="salt" placeholder="Secret for hashing...">
+        </div>
+
+        <div class="control-group">
+          <label class="label">
+            Preserve Fields (JSON)
+            <div class="tooltip-container">
+              <span class="info-icon">i</span>
+              <span class="tooltip-text">Comma-separated JSON paths to keep unchanged (e.g.
+                <code>message, properties.subject</code>). Useful for keeping context visible.</span>
+            </div>
+          </label>
+          <input type="text" id="preserve" placeholder="e.g. message, properties.Subject">
+        </div>
+
+        <div class="control-group">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px">
+            <label class="label" style="margin:0">
+              Whitelist (IOCs)
+              <div class="tooltip-container">
+                <span class="info-icon">i</span>
+                <span class="tooltip-text">Specific values to NEVER sanitize (e.g. your own IP <code>1.2.3.4</code>).
+                  Select text in input & click "Whitelist Selection" to add.</span>
+              </div>
+            </label>
+            <button class="btn-sm" id="clear_whitelist_btn" style="font-size:10px; padding:2px 6px; height:auto">Clear
+              All</button>
+          </div>
+          <div id="whitelist_list" class="tag-list">
+            <div style="font-size:12px; color:var(--text-muted); font-style:italic">No whitelist items. Select text &
+              click 'Whitelist Selection'.</div>
+          </div>
+        </div>
+
+        <button class="btn" id="run_btn">Sanitize Log</button>
+      </div>
+    </div>
+
+    <!-- Center: Input -->
+    <div class="panel">
+      <div class="panel-header">
+        Input Log
+        <div style="display:flex; gap:8px">
+          <button class="btn-sm" id="format_input" title="Prettify JSON">Format JSON</button>
+          <button class="btn-sm" id="add_whitelist_btn" title="Exclude selected text">Whitelist Selection</button>
+          <button class="btn-sm" id="add_tag_btn" title="Select text to tag">Sanitize Selection</button>
+        </div>
+      </div>
+      <div class="editor-container">
+        <textarea class="code-editor" id="input_log" placeholder="Paste your raw log or JSON here..."></textarea>
+      </div>
+    </div>
+
+    <!-- Right: Output & Analysis -->
+    <div class="panel">
+      <div class="panel-header">
+        Sanitized Output
+        <button class="btn-sm" id="copy_btn">Copy</button>
+      </div>
+      <div class="editor-container" style="height: 60%;">
+        <textarea class="code-editor" id="output_log" readonly placeholder="Result will appear here..."></textarea>
+      </div>
+
+      <div class="panel-header" style="border-top: 1px solid var(--border);">Analysis</div>
+      <div class="panel-body" id="analysis_panel">
+        <div style="text-align:center; color:var(--text-muted); margin-top:20px">Run sanitization to see stats</div>
+      </div>
+    </div>
+  </main>
+
+  <div class="toast" id="toast">Action Completed</div>
+
+  <script>
+    // --- Constants & Config ---
+    const TYPES = [
+      { id: 'email', label: 'Email' },
+      { id: 'ip', label: 'IP Address' },
+      { id: 'ipv6', label: 'IPv6' },
+      { id: 'url', label: 'URL' },
+      { id: 'mac', label: 'MAC Addr' },
+      { id: 'uuid', label: 'UUID/GUID' },
+      { id: 'jwt', label: 'JWT Token' },
+      { id: 'phone', label: 'Phone' },
+      { id: 'ssn', label: 'SSN' },
+      { id: 'credit_card', label: 'Credit Card' },
+      { id: 'aws_key', label: 'AWS Key' },
+      { id: 'private_key', label: 'Private Key' },
+      { id: 'md5', label: 'MD5 Hash' },
+      { id: 'sha1', label: 'SHA1 Hash' },
+      { id: 'sha256', label: 'SHA256 Hash' },
+      { id: 'filepath', label: 'File Path' },
+      { id: 'cve', label: 'CVE ID' },
+      { id: 'registry', label: 'Registry Key' }
+    ];
+
+    const PATTERNS = {
+      'email': /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/g,
+      'ip': /\b(?:\d{1,3}\.){3}\d{1,3}\b/g,
+      'ipv6': /\b(?:[A-F0-9]{1,4}:){7}[A-F0-9]{1,4}\b/g,
+      'url': /https?:\/\/(?:[-\w.]|(?:%[\da-fA-F]{2}))+/g,
+      'mac': /(?:[0-9A-Fa-f]{2}[:-]){5}(?:[0-9A-Fa-f]{2})/g,
+      'uuid': /[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}/g,
+      'jwt': /eyJ[a-zA-Z0-9-_]+\.[a-zA-Z0-9-_]+\.[a-zA-Z0-9-_]+/g,
+      'phone': /\b\d{3}[-.]?\d{3}[-.]?\d{4}\b/g,
+      'ssn': /\b\d{3}-\d{2}-\d{4}\b/g,
+      'credit_card': /\b(?:\d{4}[- ]?){3}\d{4}\b/g,
+      'aws_key': /(?:AKIA|ASIA)[A-Z0-9]{16}/g,
+      'private_key': /-----BEGIN [A-Z ]+ PRIVATE KEY-----[\s\S]*?-----END [A-Z ]+ PRIVATE KEY-----/g,
+      'md5': /\b[a-fA-F0-9]{32}\b/g,
+      'sha1': /\b[a-fA-F0-9]{40}\b/g,
+      'sha256': /\b[a-fA-F0-9]{64}\b/g,
+      'filepath': /(?:[a-zA-Z]:\\[\w\-. \\]+)|(?:\/[\w\-. \/]+)/g,
+      'cve': /\bCVE-\d{4}-\d{4,7}\b/g,
+      'registry': /HKEY_[A-Z_]+\\[\w\\]+/g
+    };
+
+    const SAMPLES = {
+      'azure': `{
+  "time": "2025-11-24T10:00:00Z",
+  "category": "SignInLogs",
+  "properties": {
+    "userPrincipalName": "alice.admin@contoso.com",
+    "ipAddress": "203.0.113.15",
+    "location": "New York, US",
+    "resourceId": "/subscriptions/550e8400-e29b-41d4-a716-446655440000/resourceGroups/rg-security",
+    "status": { "errorCode": 0 }
+  }
+}`,
+      'splunk': `Nov 24 10:00:00 firewall-01 kernel: [1234.56] DROP IN=eth0 OUT= MAC=00:11:22:33:44:55 SRC=192.168.1.100 DST=10.0.0.5 PROTO=TCP SPT=443 DPT=56789
+Nov 24 10:00:01 app-server java[123]: User 'jsmith' failed login. SessionID=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+Nov 24 10:00:02 file-server audit: File access denied: C:\\Users\\Admin\\Documents\\passwords.txt`,
+      'crowdstrike': `{
+  "event_simpleName": "ProcessRollup2",
+  "ComputerName": "DESKTOP-ABC1234",
+  "UserName": "jdoe",
+  "FileName": "powershell.exe",
+  "CommandLine": "powershell.exe -EncodedCommand ...",
+  "SHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "MD5": "d41d8cd98f00b204e9800998ecf8427e"
+}`,
+      'okta': `{
+  "actor": {
+    "id": "00u1234567890abcdef",
+    "type": "User",
+    "alternateId": "bob@example.com",
+    "displayName": "Bob User"
+  },
+  "client": {
+    "userAgent": "Mozilla/5.0...",
+    "ipAddress": "198.51.100.22"
+  },
+  "eventType": "user.session.start",
+  "outcome": { "result": "SUCCESS" }
+}`,
+      'paloalto': `Nov 24 10:05:00 1,2025/11/24 10:05:00,00123456789,TRAFFIC,drop,2304,2025/11/24 10:05:00,192.168.50.10,8.8.8.8,10.0.0.1,8.8.8.8,Rule-1,domain\\user,SSL,vsys1,trust,untrust,eth1/2,,1,2025/11/24 10:05:00,0,0,0,0,0x0,tcp,allow,604,604,604,4,2025/11/24 10:05:00,0,any,0,1234567,0x0,10.0.0.0-10.255.255.255,US,0,1,0,policy-deny,0,0,0,0,,PA-VM,from-policy`,
+      'aws': `{
+  "eventVersion": "1.08",
+  "userIdentity": {
+    "type": "IAMUser",
+    "principalId": "AIDA1234567890ABCDEF",
+    "arn": "arn:aws:iam::123456789012:user/Alice",
+    "accountId": "123456789012",
+    "accessKeyId": "AKIAIOSFODNN7EXAMPLE",
+    "userName": "Alice"
+  },
+  "eventTime": "2025-11-24T10:15:30Z",
+  "eventSource": "ec2.amazonaws.com",
+  "eventName": "RunInstances",
+  "awsRegion": "us-east-1",
+  "sourceIPAddress": "203.0.113.12",
+  "userAgent": "aws-cli/1.18.147 Python/2.7.18 Linux/4.14.193-149.317.amzn2.x86_64 botocore/1.17.47",
+  "requestParameters": {
+    "instancesSet": {
+      "items": [{ "imageId": "ami-0c55b159cbfafe1f0", "minCount": 1, "maxCount": 1 }]
+    }
+  }
+}`,
+      'linux': `Nov 24 10:20:01 server01 sshd[12345]: Failed password for invalid user admin from 192.168.1.20 port 54321 ssh2
+Nov 24 10:20:05 server01 sudo:  jdoe : TTY=pts/0 ; PWD=/home/jdoe ; USER=root ; COMMAND=/usr/bin/cat /etc/shadow
+Nov 24 10:21:10 server01 kernel: [9999.99] UFW BLOCK: IN=eth0 OUT= MAC=00:00:00:00:00:00 SRC=10.0.0.5 DST=10.0.0.1 PROTO=TCP SPT=4444 DPT=22`,
+      'windows': `<Event xmlns='http://schemas.microsoft.com/win/2004/08/events/event'>
+  <System>
+    <Provider Name='Microsoft-Windows-Security-Auditing' Guid='{54849625-5478-4994-A5BA-3E3B0328C30D}'/>
+    <EventID>4624</EventID>
+    <Version>2</Version>
+    <Level>0</Level>
+    <Task>12544</Task>
+    <Opcode>0</Opcode>
+    <Keywords>0x8020000000000000</Keywords>
+    <TimeCreated SystemTime='2025-11-24T10:30:00.000000000Z'/>
+    <EventRecordID>12345</EventRecordID>
+    <Correlation/>
+    <Execution ProcessID='500' ThreadID='500'/>
+    <Channel>Security</Channel>
+    <Computer>DESKTOP-WIN10</Computer>
+    <Security/>
+  </System>
+  <EventData>
+    <Data Name='SubjectUserSid'>S-1-5-18</Data>
+    <Data Name='SubjectUserName'>DESKTOP-WIN10$</Data>
+    <Data Name='SubjectDomainName'>WORKGROUP</Data>
+    <Data Name='SubjectLogonId'>0x3e7</Data>
+    <Data Name='TargetUserSid'>S-1-5-21-1234567890-1234567890-1234567890-1001</Data>
+    <Data Name='TargetUserName'>JSmith</Data>
+    <Data Name='TargetDomainName'>DESKTOP-WIN10</Data>
+    <Data Name='TargetLogonId'>0x8d34a</Data>
+    <Data Name='LogonType'>2</Data>
+    <Data Name='IpAddress'>192.168.1.15</Data>
+    <Data Name='IpPort'>0</Data>
+  </EventData>
+</Event>`,
+      'nginx': `127.0.0.1 - - [24/Nov/2025:10:45:00 +0000] "GET /api/users/12345 HTTP/1.1" 200 123 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"
+192.168.1.50 - - [24/Nov/2025:10:45:05 +0000] "POST /login HTTP/1.1" 401 45 "https://example.com/login" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)"
+10.0.0.5 - - [24/Nov/2025:10:46:10 +0000] "GET /admin/config.xml HTTP/1.1" 403 0 "-" "Python-urllib/3.8"`
+    };
+
+    // --- State ---
+    let customTerms = [];
+    let whitelistTerms = [];
+    let fakerCache = {}; // For referential integrity
+
+    // --- UI Init ---
+    const typesContainer = document.getElementById('types_container');
+    TYPES.forEach(t => {
+      const el = document.createElement('div');
+      el.className = 'chip';
+      el.textContent = t.label;
+      el.dataset.value = t.id;
+      el.onclick = () => el.classList.toggle('active');
+      typesContainer.appendChild(el);
+    });
+
+    // --- Logic ---
+    const { faker } = window;
+
+    function getReplacement(value, strategy, salt, type) {
+      // Referential Integrity Check
+      const cacheKey = `${strategy}:${salt}:${value}`;
+      if (fakerCache[cacheKey]) return fakerCache[cacheKey];
+
+      let replacement = value;
+
+      if (strategy === 'redact') {
+        replacement = `[REDACTED:${type.toUpperCase()}]`;
+      } else if (strategy === 'mask') {
+        replacement = value.length > 4 ? '*'.repeat(value.length - 4) + value.slice(-4) : '*'.repeat(value.length);
+      } else if (strategy === 'hash') {
+        replacement = simpleHash(value, salt).substring(0, 16);
+      } else if (strategy === 'tokenize') {
+        replacement = `tok-${simpleHash(value, salt).substring(0, 8)}`;
+      } else if (strategy === 'sample') {
+        if (!faker) replacement = `fake-${type}`;
+        else {
+          if (type === 'email') replacement = faker.internet.email();
+          else if (type === 'ip') replacement = faker.internet.ipv4();
+          else if (type === 'ipv6') replacement = faker.internet.ipv6();
+          else if (type === 'url') replacement = faker.internet.url();
+          else if (type === 'mac') replacement = faker.internet.mac();
+          else if (type === 'uuid') replacement = faker.string.uuid();
+          else if (type === 'phone') replacement = faker.phone.number();
+          else if (type === 'ssn') replacement = faker.string.numeric(3) + '-' + faker.string.numeric(2) + '-' + faker.string.numeric(4);
+          else if (type === 'credit_card') replacement = faker.finance.creditCardNumber();
+          else if (type === 'aws_key') replacement = 'AKIA' + faker.string.alphanumeric(16).toUpperCase();
+          else if (type === 'md5') replacement = faker.string.hexadecimal({ length: 32, prefix: '' });
+          else if (type === 'sha1') replacement = faker.string.hexadecimal({ length: 40, prefix: '' });
+          else if (type === 'sha256') replacement = faker.string.hexadecimal({ length: 64, prefix: '' });
+          else if (type === 'filepath') replacement = (value.includes('\\') ? 'C:\\Fake\\Path\\file.txt' : '/fake/path/file.txt');
+          else if (type === 'cve') replacement = `CVE-${faker.number.int({ min: 1999, max: 2025 })}-${faker.number.int({ min: 1000, max: 9999 })}`;
+          else replacement = `fake-${faker.word.sample()}`;
+        }
+      }
+
+      fakerCache[cacheKey] = replacement;
+      return replacement;
+    }
+
+    function simpleHash(str, salt) {
+      let h = 0xdeadbeef;
+      str = str + (salt || '');
+      for (let i = 0; i < str.length; i++) h = Math.imul(h ^ str.charCodeAt(i), 2654435761);
+      return ((h ^ h >>> 16) >>> 0).toString(16);
+    }
+
+    function sanitize(text) {
+      const strategy = document.getElementById('strategy').value;
+      const salt = document.getElementById('salt').value;
+      const preserve = document.getElementById('preserve').value.split(',').map(s => s.trim()).filter(Boolean);
+      // Whitelist is now handled via whitelistTerms array
+
+      // Get excluded types
+      const excluded = new Set();
+      document.querySelectorAll('.chip.active').forEach(el => excluded.add(el.dataset.value));
+
+      let analysis = { total: 0, types: {}, density: 0, flags: [] };
+
+      // Helper to process text
+      function processText(t) {
+        let processed = t;
+
+        // 1. Custom Terms
+        customTerms.forEach(term => {
+          if (excluded.has('custom')) return;
+          const regex = new RegExp(term.pattern.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g');
+          processed = processed.replace(regex, (m) => {
+            if (whitelistTerms.includes(m)) return m;
+            analysis.total++;
+            analysis.types[term.tag] = (analysis.types[term.tag] || 0) + 1;
+            return getReplacement(m, strategy, salt, term.tag);
+          });
+        });
+
+        // 2. Built-in Patterns
+        for (const [type, regex] of Object.entries(PATTERNS)) {
+          if (excluded.has(type)) continue;
+          processed = processed.replace(regex, (m) => {
+            if (whitelistTerms.includes(m)) return m;
+            analysis.total++;
+            analysis.types[type] = (analysis.types[type] || 0) + 1;
+            if (['ssn', 'credit_card', 'private_key', 'aws_key'].includes(type) && !analysis.flags.includes('Critical PII/Secret')) {
+              analysis.flags.push('Critical PII/Secret');
+            }
+            return getReplacement(m, strategy, salt, type);
+          });
+        }
+        return processed;
+      }
+
+      // JSON Handling
+      let resultText = '';
+      try {
+        const json = JSON.parse(text);
+
+        function traverse(obj, path = '') {
+          if (Array.isArray(obj)) return obj.map(i => traverse(i, path));
+          if (typeof obj === 'object' && obj !== null) {
+            const newObj = {};
+            for (const [k, v] of Object.entries(obj)) {
+              const currPath = path ? `${path}.${k}` : k;
+              if (preserve.includes(currPath) || preserve.includes(k)) newObj[k] = v;
+              else newObj[k] = traverse(v, currPath);
+            }
+            return newObj;
+          }
+          if (typeof obj === 'string') return processText(obj);
+          return obj;
+        }
+
+        const sanitizedJson = traverse(json);
+        resultText = JSON.stringify(sanitizedJson, null, 2);
+      } catch (e) {
+        resultText = processText(text);
+      }
+
+      // Density Calc
+      const words = text.split(/\s+/).length;
+      analysis.density = words > 0 ? Math.round((analysis.total / words) * 100) : 0;
+
+      return { text: resultText, analysis };
+    }
+
+    function renderCustomTags() {
+      const list = document.getElementById('custom_tags_list');
+      list.innerHTML = '';
+      if (customTerms.length === 0) {
+        list.innerHTML = '<div style="font-size:12px; color:var(--text-muted); font-style:italic">No custom tags yet. Select text in input & click "Sanitize Selection".</div>';
+        return;
+      }
+      customTerms.forEach((term, idx) => {
+        const div = document.createElement('div');
+        div.className = 'tag-item';
+        div.innerHTML = `
+                <div>
+                    <div style="font-weight:600">${term.tag}</div>
+                    <div style="font-size:10px; color:var(--text-muted); font-family:monospace; max-width:150px; overflow:hidden; text-overflow:ellipsis">${term.pattern}</div>
+                </div>
+                <button class="btn-icon" onclick="removeTag(${idx})">✕</button>
+            `;
+        list.appendChild(div);
+      });
+    }
+
+    function renderWhitelist() {
+      const list = document.getElementById('whitelist_list');
+      list.innerHTML = '';
+      if (whitelistTerms.length === 0) {
+        list.innerHTML = '<div style="font-size:12px; color:var(--text-muted); font-style:italic">No whitelist items. Select text & click "Whitelist Selection".</div>';
+        return;
+      }
+      whitelistTerms.forEach((term, idx) => {
+        const div = document.createElement('div');
+        div.className = 'tag-item';
+        div.innerHTML = `
+                <div style="font-family:monospace; color:var(--success); overflow:hidden; text-overflow:ellipsis">${term}</div>
+                <button class="btn-icon" onclick="removeWhitelist(${idx})">✕</button>
+            `;
+        list.appendChild(div);
+      });
+    }
+
+    window.removeTag = (idx) => {
+      customTerms.splice(idx, 1);
+      renderCustomTags();
+      document.getElementById('run_btn').click(); // Auto-run
+      showToast('Tag removed & Log re-sanitized');
+    };
+
+    window.removeWhitelist = (idx) => {
+      whitelistTerms.splice(idx, 1);
+      renderWhitelist();
+      document.getElementById('run_btn').click(); // Auto-run
+      showToast('Whitelist item removed');
+    };
+
+    document.getElementById('clear_tags_btn').onclick = () => {
+      if (customTerms.length === 0) return;
+      if (confirm('Remove all custom tags?')) {
+        customTerms = [];
+        renderCustomTags();
+        document.getElementById('run_btn').click(); // Auto-run
+        showToast('All tags cleared');
+      }
+    };
+
+    document.getElementById('clear_whitelist_btn').onclick = () => {
+      if (whitelistTerms.length === 0) return;
+      if (confirm('Remove all whitelist items?')) {
+        whitelistTerms = [];
+        renderWhitelist();
+        document.getElementById('run_btn').click(); // Auto-run
+        showToast('Whitelist cleared');
+      }
+    };
+
+    // --- Event Handlers ---
+    document.getElementById('run_btn').onclick = () => {
+      const input = document.getElementById('input_log').value;
+      if (!input) return showToast('Please enter a log first');
+
+      const res = sanitize(input);
+      document.getElementById('output_log').value = res.text;
+      renderAnalysis(res.analysis);
+      // showToast('Sanitization Complete'); // Too noisy if auto-running
+    };
+
+    document.getElementById('format_input').onclick = () => {
+      const el = document.getElementById('input_log');
+      try {
+        const j = JSON.parse(el.value);
+        el.value = JSON.stringify(j, null, 2);
+        showToast('JSON Formatted');
+      } catch (e) { showToast('Invalid JSON'); }
+    };
+
+    document.getElementById('copy_btn').onclick = () => {
+      navigator.clipboard.writeText(document.getElementById('output_log').value);
+      showToast('Copied to Clipboard');
+    };
+
+    document.getElementById('add_tag_btn').onclick = () => {
+      const el = document.getElementById('input_log');
+      const start = el.selectionStart;
+      const end = el.selectionEnd;
+      if (start === end) return showToast('Select text to tag first');
+
+      const selection = el.value.substring(start, end);
+      const name = prompt(`Tag name for "${selection}"?`, 'custom');
+      if (name) {
+        customTerms.push({ tag: name, pattern: selection });
+        renderCustomTags();
+        document.getElementById('run_btn').click(); // Auto-run
+        showToast(`Tag added & Log re-sanitized`);
+      }
+    };
+
+    document.getElementById('add_whitelist_btn').onclick = () => {
+      const el = document.getElementById('input_log');
+      const start = el.selectionStart;
+      const end = el.selectionEnd;
+      if (start === end) return showToast('Select text to whitelist first');
+
+      const selection = el.value.substring(start, end);
+      if (whitelistTerms.includes(selection)) return showToast('Item already whitelisted');
+
+      whitelistTerms.push(selection);
+      renderWhitelist();
+      document.getElementById('run_btn').click(); // Auto-run
+      showToast(`Item whitelisted & Log re-sanitized`);
+    };
+
+    document.getElementById('sample_select').onchange = (e) => {
+      const val = e.target.value;
+      if (val && SAMPLES[val]) {
+        document.getElementById('input_log').value = SAMPLES[val];
+        showToast(`Loaded ${val} sample`);
+      }
+    };
+
+    function renderAnalysis(a) {
+      const panel = document.getElementById('analysis_panel');
+      let html = `
+            <div class="stat-card">
+                <div class="stat-title">TOTAL REDACTIONS</div>
+                <div class="stat-value">${a.total}</div>
+                <div class="stat-sub">Items removed or transformed</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-title">RISK DENSITY</div>
+                <div class="stat-value">${a.density}%</div>
+                <div class="bar-container">
+                    <div class="bar-bg"><div class="bar-fill" style="width:${Math.min(a.density, 100)}%"></div></div>
+                </div>
+            </div>
+        `;
+
+      if (Object.keys(a.types).length > 0) {
+        html += `<div style="margin-top:16px; font-size:12px; font-weight:600; color:var(--text-muted); margin-bottom:8px">DETECTION BREAKDOWN</div>`;
+        for (const [t, c] of Object.entries(a.types)) {
+          const pct = Math.round((c / a.total) * 100);
+          html += `
+                    <div class="bar-container" style="margin-bottom:8px">
+                        <div class="bar-label"><span>${t}</span> <span>${c}</span></div>
+                        <div class="bar-bg"><div class="bar-fill" style="width:${pct}%; background:var(--accent)"></div></div>
+                    </div>
+                `;
+        }
+      }
+
+      if (a.flags.length) {
+        html += `<div style="margin-top:16px">`;
+        a.flags.forEach(f => html += `<div class="compliance-badge">⚠️ ${f}</div>`);
+        html += `</div>`;
+      }
+
+      panel.innerHTML = html;
+    }
+
+    function showToast(msg) {
+      const t = document.getElementById('toast');
+      t.textContent = msg;
+      t.classList.add('show');
+      setTimeout(() => t.classList.remove('show'), 2000);
+    }
+  </script>
+</body>
+
+</html>
